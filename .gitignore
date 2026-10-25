@@ -1,0 +1,14 @@
+# per-project state (never commit a real search)
+tracker.json
+tracker.xlsx
+xlsx_state.json
+latest.json
+report.md
+pipeline.md
+seen.json
+log.txt
+rescore.log
+__pycache__/
+*.bak*
+.DS_Store
+.claude/
