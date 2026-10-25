@@ -66,7 +66,7 @@ On macOS, give `/bin/bash` Full Disk Access if the job needs to write under Desk
 
 ## Status
 
-Used daily by its author. No tests beyond the live sweeps and the collateral QA harness that consumes its output.
+Used daily by its author. No tests beyond the live sweeps.
 Known gaps: Microsoft and Meta boards need a browser session; AMD's iCIMS board is JavaScript-rendered; Qualcomm's
 Eightfold API is closed (the sitemap route works instead).
 

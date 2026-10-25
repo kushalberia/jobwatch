@@ -19,8 +19,7 @@ sources can override it (Palantir's Lever feed is 6 MB).
 
 **Rules, not a model, for fit.** A model would be opaque about *why* a posting scored well, and the author needs to
 argue with the score. Every point is explained in the Fit-notes cell ("+3 title 'forward deployed'; -2 language
-requirement"). Negative rules become flags that the collateral generator later turns into honest sentences in a cover
-letter. Context exceptions (`text_negative_unless`) stop a flag when the posting itself supplies the mitigation, for
+requirement"). Negative rules become flags that stay visible in the workbook, so the reason for a low score is never hidden. Context exceptions (`text_negative_unless`) stop a flag when the posting itself supplies the mitigation, for
 example a pay-transparency boilerplate that mentions commission "for sales roles".
 
 **Longest-match title weights.** "applied ai" inside "applied ai engineer" used to count twice. Title keys are sorted
