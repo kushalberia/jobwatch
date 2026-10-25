@@ -1,0 +1,509 @@
+{
+ "_comment": "agentwatch: agentic / forward-deployed / applied-AI delivery roles. Same engine as jobwatch (run: python3 ../jobwatch/jobwatch.py --dir . ). Keys are lowercase substrings of title/location; fit regexes run on the JD text.",
+ "name": "agentwatch",
+ "search_queries": [
+  "forward deployed engineer",
+  "applied AI engineer",
+  "agentic AI",
+  "AI automation engineer",
+  "AI workflow engineer"
+ ],
+ "workbook": {
+  "group_by": "country",
+  "sort": "fit_comp",
+  "comp_usd": true
+ },
+ "title_include": [
+  "forward deployed",
+  "forward-deployed",
+  "applied ai",
+  "agent deployment",
+  "agent development",
+  "agentic",
+  "ai workflow",
+  "ai automation",
+  "automation engineer",
+  "deployment strategist",
+  "deployment engineer",
+  "ai engineer",
+  "llm engineer",
+  "genai engineer",
+  "generative ai engineer",
+  "ai solutions",
+  "ai architect",
+  "ai practice",
+  "frontier agent"
+ ],
+ "title_include_combo": [
+  [
+   "solutions architect",
+   "ai"
+  ],
+  [
+   "solutions architect",
+   "generative"
+  ],
+  [
+   "solutions engineer",
+   "ai"
+  ],
+  [
+   "solution architect",
+   "ai"
+  ],
+  [
+   "software engineer",
+   "agent"
+  ],
+  [
+   "member of technical staff",
+   "agent"
+  ],
+  [
+   "engineer",
+   "agents"
+  ],
+  [
+   "engineer",
+   "codex"
+  ],
+  [
+   "engineer",
+   "claude"
+  ],
+  [
+   "strategist",
+   "agent"
+  ],
+  [
+   "consultant",
+   "ai"
+  ],
+  [
+   "principal",
+   "ai"
+  ],
+  [
+   "engineer",
+   "mcp"
+  ]
+ ],
+ "title_exclude": [
+  "manager",
+  "director",
+  "head of",
+  "vp ",
+  "vice president",
+  "chief",
+  "intern",
+  "new grad",
+  "graduate",
+  "apprentice",
+  "product manager",
+  "program manager",
+  "project manager",
+  "recruit",
+  "sales",
+  "account executive",
+  "account manager",
+  "marketing",
+  "research scientist",
+  "reliability engineer",
+  "infrastructure engineer",
+  "government",
+  "nato",
+  "defense",
+  "defence",
+  "cyber",
+  "security",
+  "clearance",
+  "data scientist",
+  "operations",
+  "support engineer",
+  "ads ",
+  "legal",
+  "finance",
+  "designer",
+  "technical writer",
+  "analyst",
+  "talent",
+  "people ",
+  "payroll",
+  "customer success",
+  "enablement",
+  "partnerships",
+  "partner ",
+  "education",
+  "healthcare",
+  "clinical",
+  "life sciences",
+  "cantonese",
+  "mandarin",
+  "japanese",
+  "korean",
+  "arabic",
+  "flemish",
+  "norwegian",
+  "swedish",
+  "dutch",
+  "hebrew",
+  "portuguese",
+  "french speaking",
+  "french-speaking",
+  "german speaking",
+  "german-speaking",
+  "spanish speaking",
+  "spanish-speaking",
+  "italian speaking",
+  "italian-speaking",
+  "- japan",
+  "- tokyo",
+  "- korea",
+  "- india",
+  "india)",
+  "(india",
+  "ml engineer",
+  "machine learning engineer",
+  "data engineer",
+  "platform engineer",
+  "backend engineer",
+  "frontend engineer",
+  "full-stack engineer",
+  "full stack engineer",
+  "ios ",
+  "android",
+  "voice",
+  "research engineer",
+  "researcher"
+ ],
+ "title_exclude_unless": [
+  "engineering manager, agent",
+  "agent development manager"
+ ],
+ "location_include": [
+  "united kingdom",
+  "london",
+  "manchester",
+  "cambridge",
+  "bristol",
+  "edinburgh",
+  "leeds",
+  " uk",
+  "uk,",
+  "(uk",
+  "ireland",
+  "dublin",
+  "germany",
+  "munich",
+  "berlin",
+  "hamburg",
+  "cologne",
+  "stuttgart",
+  "frankfurt",
+  "france",
+  "paris",
+  "spain",
+  "madrid",
+  "barcelona",
+  "italy",
+  "milan",
+  "rome",
+  "switzerland",
+  "zurich",
+  "zürich",
+  "lausanne",
+  "geneva",
+  "netherlands",
+  "amsterdam",
+  "belgium",
+  "brussels",
+  "luxembourg",
+  "austria",
+  "vienna",
+  "sweden",
+  "stockholm",
+  "denmark",
+  "copenhagen",
+  "norway",
+  "oslo",
+  "finland",
+  "helsinki",
+  "poland",
+  "warsaw",
+  "czech",
+  "prague",
+  "portugal",
+  "lisbon",
+  "serbia",
+  "belgrade",
+  "europe",
+  "emea",
+  "new zealand",
+  "auckland",
+  "wellington",
+  "australia",
+  "sydney",
+  "melbourne",
+  "brisbane",
+  "perth",
+  "singapore",
+  "uae",
+  "dubai",
+  "abu dhabi",
+  "united arab emirates",
+  "canada",
+  "toronto",
+  "vancouver",
+  "remote",
+  "united states",
+  "san francisco",
+  "new york",
+  "seattle",
+  "austin",
+  "california",
+  "washington"
+ ],
+ "location_low_priority": [],
+ "require_location": true,
+ "notify": true,
+ "fit": {
+  "_comment": "Agentic-delivery fit vs the candidate: senior engineer who builds production agent systems (jobwatch pipeline: multi-source ingestion, scoring, docx/pdf generation, scheduling, evals via QA harness), strong Python, no customer-facing track record yet, no frontend. Location is not scored.",
+  "include_location": false,
+  "title_weights": {
+   "forward deployed": 3,
+   "forward-deployed": 3,
+   "agent deployment": 3,
+   "applied ai engineer": 3,
+   "applied ai architect": 2.5,
+   "applied ai": 2,
+   "agentic": 2.5,
+   "ai workflow": 2.5,
+   "ai automation": 2,
+   "automation engineer": 1.5,
+   "agent development": 2,
+   "agent": 1.5,
+   "agents": 1.5,
+   "ai engineer": 1.5,
+   "ai practice": 2,
+   "ai architect": 1.5,
+   "ai solutions": 1.5,
+   "solutions architect": 1,
+   "solutions engineer": 1,
+   "strategist": 1,
+   "principal": 1,
+   "staff": 0.5,
+   "senior": 0.5,
+   "sr.": 0.5,
+   "codex": 1.5,
+   "claude": 1.5,
+   "mcp": 1.5,
+   "llm": 1,
+   "genai": 1,
+   "generative ai": 1
+  },
+  "location_weights": {},
+  "text_positive": {
+   "\\bpython\\b": [
+    1,
+    "Python"
+   ],
+   "\\bagents?\\b|agentic": [
+    1,
+    "agents"
+   ],
+   "tool.?calling|function.?calling|\\bmcp\\b|model context protocol": [
+    1,
+    "tool calling / MCP"
+   ],
+   "\\bevals?\\b|evaluation (framework|harness|suite|pipeline)": [
+    1,
+    "evals"
+   ],
+   "claude|anthropic|openai|gpt|gemini|\\bllms?\\b|foundation model": [
+    0.5,
+    "LLM stack"
+   ],
+   "workflow automation|orchestrat|multi-?step|multi-?agent": [
+    1,
+    "workflow orchestration"
+   ],
+   "prototype|proof.of.concept|\\bpocs?\\b|pilot": [
+    0.5,
+    "prototyping"
+   ],
+   "end.to.end|full ownership|own(s|ing)? (the )?(outcome|use case|delivery)": [
+    0.5,
+    "end-to-end ownership"
+   ],
+   "ambigu": [
+    0.5,
+    "ambiguity"
+   ],
+   "hardware|semiconductor|\\bgpu\\b|silicon|systems engineering|embedded": [
+    1,
+    "hardware-adjacent (credibility)"
+   ],
+   "automation|automate|manual (toil|work|process)": [
+    0.5,
+    "automation"
+   ],
+   "rag\\b|retrieval": [
+    0.5,
+    "RAG"
+   ]
+  },
+  "text_positive_cap": 5,
+  "text_negative": {
+   "native (french|german|spanish|italian|dutch|swedish|norwegian|japanese|korean|arabic|mandarin|cantonese|portuguese)|fluen(t|cy) in (french|german|spanish|italian|dutch|swedish|norwegian|japanese|korean|arabic|mandarin|portuguese)|(french|german|spanish|italian|dutch|swedish|norwegian|arabic|mandarin|japanese|korean)[- ]speaking|business.level (french|german|spanish|italian|japanese)": [
+    2,
+    "language requirement"
+   ],
+   "security clearance|sc clearance|dv clearance|\\bbpss\\b|top secret|ts/sci": [
+    3,
+    "clearance"
+   ],
+   "(8|9|10|12|15)\\+? years": [
+    1,
+    "8+ years asked"
+   ],
+   "new grad|recent graduate|0-2 years|entry.level": [
+    2,
+    "junior role"
+   ],
+   "(react|next\\.js|node\\.js|typescript)": [
+    0.5,
+    "frontend / TS expected"
+   ],
+   "(no|not|unable to|cannot|can't) (provide |offer )?(visa )?sponsor": [
+    3,
+    "no visa sponsorship"
+   ],
+   "phd": [
+    0.5,
+    "PhD mentioned"
+   ],
+   "pre-?sales|technical win|sales cycle|sales team": [
+    1,
+    "pre-sales role"
+   ],
+   "(5|6|7)\\+? years.{0,60}(customer|client)-facing|(customer|client)-facing.{0,60}(5|6|7)\\+? years": [
+    1,
+    "years customer-facing"
+   ],
+   "\\bquota\\b|on.target earnings|\\bote\\b|offers commission|variable comp": [
+    1.5,
+    "sales OTE / commission"
+   ]
+  },
+  "text_negative_unless": {
+   "frontend / TS expected": "python",
+   "pre-sales role": "forward deployed|hands-on|build|ship",
+   "sales OTE / commission": "for sales roles, the range provided"
+  },
+  "star_thresholds": [
+   2.5,
+   4.5,
+   6.5,
+   8.5
+  ],
+  "title_overlap": "longest"
+ },
+ "sources": {
+  "anthropic": {
+   "type": "greenhouse",
+   "name": "Anthropic",
+   "board": "anthropic"
+  },
+  "openai": {
+   "type": "ashby",
+   "name": "OpenAI",
+   "board": "openai"
+  },
+  "cohere": {
+   "type": "ashby",
+   "name": "Cohere",
+   "board": "cohere"
+  },
+  "cursor": {
+   "type": "ashby",
+   "name": "Cursor",
+   "board": "cursor"
+  },
+  "databricks": {
+   "type": "greenhouse",
+   "name": "Databricks",
+   "board": "databricks"
+  },
+  "palantir": {
+   "type": "lever",
+   "name": "Palantir",
+   "board": "palantir",
+   "timeout": 150
+  },
+  "mistral": {
+   "type": "lever",
+   "name": "Mistral AI",
+   "board": "mistral"
+  },
+  "decagon": {
+   "type": "ashby",
+   "name": "Decagon",
+   "board": "decagon"
+  },
+  "sierra": {
+   "type": "ashby",
+   "name": "Sierra",
+   "board": "sierra"
+  },
+  "notion": {
+   "type": "ashby",
+   "name": "Notion",
+   "board": "notion"
+  },
+  "elevenlabs": {
+   "type": "ashby",
+   "name": "ElevenLabs",
+   "board": "elevenlabs"
+  },
+  "lovable": {
+   "type": "ashby",
+   "name": "Lovable",
+   "board": "lovable"
+  },
+  "scaleai": {
+   "type": "greenhouse",
+   "name": "Scale AI",
+   "board": "scaleai"
+  },
+  "thoughtworks": {
+   "type": "greenhouse",
+   "name": "Thoughtworks",
+   "board": "thoughtworks"
+  },
+  "harvey": {
+   "type": "ashby",
+   "name": "Harvey",
+   "board": "harvey"
+  },
+  "writer": {
+   "type": "ashby",
+   "name": "Writer",
+   "board": "writer"
+  },
+  "replit": {
+   "type": "ashby",
+   "name": "Replit",
+   "board": "replit"
+  },
+  "perplexity": {
+   "type": "ashby",
+   "name": "Perplexity",
+   "board": "perplexity"
+  },
+  "linear": {
+   "type": "ashby",
+   "name": "Linear",
+   "board": "linear"
+  }
+ }
+}

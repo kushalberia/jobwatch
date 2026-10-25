@@ -1,0 +1,802 @@
+{
+  "_comment": "Edit freely. Keys are lowercase substrings matched against lowercased title/location. Workday search_queries are also sent as the portal search text.",
+  "search_queries": [
+    "GPU performance",
+    "performance architect",
+    "performance engineer",
+    "silicon performance",
+    "post-silicon performance",
+    "performance modeling",
+    "performance verification",
+    "SoC performance"
+  ],
+  "title_include": [
+    "gpu performance",
+    "performance architect",
+    "performance engineer",
+    "performance analysis",
+    "performance modeling",
+    "performance modelling",
+    "performance verification",
+    "performance validation",
+    "silicon performance",
+    "post-silicon",
+    "post silicon",
+    "soc performance",
+    "performance architecture",
+    "gpu architect",
+    "gpu microarchitect",
+    "microarchitecture performance",
+    "hardware performance",
+    "performance researcher",
+    "computer architecture researcher",
+    "architecture researcher"
+  ],
+  "title_exclude": [
+    "intern",
+    "internship",
+    "principal",
+    "distinguished",
+    "fellow",
+    "director",
+    "manager",
+    "vp ",
+    "sales",
+    "marketing",
+    "recruit",
+    "staff ",
+    "senior staff",
+    "phd",
+    "student",
+    "new grad",
+    "software performance",
+    "web performance",
+    "database performance",
+    "network performance",
+    "ml performance",
+    "machine learning performance",
+    "compiler",
+    "kernel engineer",
+    "cuda kernel",
+    "uvm",
+    "design verification",
+    "dv engineer",
+    "rtl design",
+    "physical design",
+    "analog",
+    "rf ",
+    "chatgpt",
+    "solutions architect",
+    "services engineering",
+    "deep learning",
+    "training performance",
+    "agent performance",
+    "hpc performance",
+    "ai performance",
+    "power and thermal",
+    "platform lead",
+    "graduate",
+    "yield optimization",
+    "neural engine",
+    "media-ip",
+    "staff-",
+    "staff,",
+    "staff/",
+    "/staff",
+    "cloud performance",
+    "end to end performance",
+    "end-to-end performance",
+    "cellular",
+    "4g/5g",
+    "wireless",
+    "modem",
+    "apple intelligence",
+    "reinforcement learning",
+    "alignment",
+    "interpretability",
+    "pretraining",
+    "pre-training",
+    "post-training",
+    "safety",
+    "cybersecurity",
+    "user experience",
+    "life sciences",
+    "codex",
+    "privacy",
+    "robustness",
+    "evals",
+    "personal agi",
+    "computer use",
+    "multimodal",
+    "knowledge team",
+    "tokens",
+    "health",
+    "retrieval",
+    "offensive",
+    "security researcher",
+    "foundation model",
+    "infinite context",
+    "llms",
+    "chip design rl",
+    "ai for chip design",
+    "software systems engineer"
+  ],
+  "location_include": [
+    "zurich",
+    "zürich",
+    "switzerland",
+    "cambridge",
+    "london",
+    "bristol",
+    "manchester",
+    "united kingdom",
+    "uk",
+    "munich",
+    "münchen",
+    "germany",
+    "berlin",
+    "amsterdam",
+    "netherlands",
+    "cupertino",
+    "santa clara",
+    "sunnyvale",
+    "san francisco",
+    "san jose",
+    "mountain view",
+    "bay area",
+    "california",
+    "seattle",
+    "austin",
+    "remote",
+    "lausanne",
+    "eindhoven",
+    "leuven",
+    "prague",
+    "brno",
+    "paris",
+    "grenoble",
+    "sophia antipolis",
+    "oslo",
+    "stockholm",
+    "dublin",
+    "edinburgh",
+    "san diego",
+    "folsom",
+    "hillsboro",
+    "portland",
+    "oregon",
+    "texas",
+    "washington",
+    "new york",
+    "massachusetts",
+    "colorado",
+    "arizona",
+    "north carolina",
+    "raleigh",
+    "boston",
+    "chandler",
+    "united states",
+    "usa",
+    "us,",
+    "ca,us",
+    "tx,us",
+    "markham",
+    "toronto",
+    "canada",
+    "shanghai",
+    "beijing",
+    "shenzhen",
+    "hangzhou",
+    "nanjing",
+    "wuhan",
+    "suzhou",
+    "hong kong",
+    "china",
+    "taipei",
+    "hsinchu",
+    "taiwan",
+    "singapore",
+    "bengaluru",
+    "bangalore",
+    "hyderabad",
+    "pune",
+    "noida",
+    "chennai",
+    "india",
+    "ireland",
+    "cork",
+    "galway",
+    "limerick",
+    "shannon",
+    "france",
+    "toulouse",
+    "lyon",
+    "rennes",
+    "italy",
+    "italia",
+    "milan",
+    "milano",
+    "turin",
+    "torino",
+    "rome",
+    "roma",
+    "pavia",
+    "catania",
+    "agrate",
+    "bologna",
+    "pisa",
+    "spain",
+    "españa",
+    "barcelona",
+    "madrid",
+    "valencia",
+    "malaga",
+    "málaga",
+    "zaragoza",
+    "bilbao",
+    "portugal",
+    "lisbon",
+    "porto",
+    "austria",
+    "vienna",
+    "graz",
+    "linz",
+    "belgium",
+    "brussels",
+    "denmark",
+    "copenhagen",
+    "finland",
+    "helsinki",
+    "sweden",
+    "lund",
+    "norway",
+    "czech",
+    "poland",
+    "warsaw",
+    "gdansk",
+    "krakow",
+    "romania",
+    "bucharest",
+    "hungary",
+    "budapest"
+  ],
+  "location_low_priority": [],
+  "require_location": true,
+  "notify": true,
+  "sources": {
+    "apple": {
+      "type": "apple",
+      "name": "Apple",
+      "locations": []
+    },
+    "nvidia": {
+      "type": "workday",
+      "name": "NVIDIA",
+      "host": "nvidia.wd5.myworkdayjobs.com",
+      "tenant": "nvidia",
+      "site": "NVIDIAExternalCareerSite",
+      "max": 100
+    },
+    "arm": {
+      "type": "radancy",
+      "name": "Arm",
+      "base": "https://careers.arm.com",
+      "per_page": 50
+    },
+    "qualcomm": {
+      "type": "sitemap",
+      "name": "Qualcomm",
+      "sitemap": "https://careers.qualcomm.com/careers/sitemap.xml",
+      "pattern": "/job/(\\d+)-([a-z0-9-]+)",
+      "strip_query": false,
+      "timeout": 60,
+      "_note": "Eightfold API is closed; sitemap slugs carry title+location, job page JSON-LD gives the rest."
+    },
+    "amd": {
+      "type": "workday",
+      "name": "AMD",
+      "host": "amd.wd1.myworkdayjobs.com",
+      "tenant": "amd",
+      "site": "External_Career",
+      "max": 100,
+      "enabled": false,
+      "_note": "careers.amd.com is iCIMS, not Workday. Fetcher pending."
+    },
+    "anthropic": {
+      "type": "greenhouse",
+      "name": "Anthropic",
+      "board": "anthropic"
+    },
+    "openai": {
+      "type": "ashby",
+      "name": "OpenAI",
+      "board": "openai"
+    },
+    "graphcore": {
+      "type": "greenhouse",
+      "name": "Graphcore",
+      "board": "graphcore"
+    },
+    "imagination": {
+      "type": "greenhouse",
+      "name": "Imagination",
+      "board": "imaginationtechnologies",
+      "enabled": false,
+      "_note": "WordPress site, vacancies rendered by JS; no public feed found. Use a LinkedIn alert."
+    },
+    "nebius": {
+      "type": "greenhouse",
+      "name": "Nebius",
+      "board": "nebius"
+    },
+    "densityai": {
+      "type": "ashby",
+      "name": "DensityAI",
+      "board": "density",
+      "enabled": false,
+      "_note": "No Ashby board under 'density' or 'densityai'. Use the LinkedIn posting."
+    },
+    "google": {
+      "type": "google_html",
+      "name": "Google",
+      "pages": 2,
+      "locations": [
+        "Zurich, Switzerland",
+        "London, UK",
+        "Munich, Germany",
+        "Bengaluru, India",
+        "Sunnyvale, CA, USA"
+      ],
+      "_note": "Server-rendered results only when not on the corporate VPN; on VPN the page comes back without cards and the source simply reports zero.",
+      "queries": [
+        "GPU performance",
+        "performance architect",
+        "silicon performance",
+        "performance modeling"
+      ],
+      "also_global": true
+    },
+    "huawei_zurich": {
+      "type": "teamtailor",
+      "name": "Huawei Zurich",
+      "base": "https://careers.huaweirc.ch",
+      "default_location": "Zürich",
+      "timeout": 90
+    },
+    "samsung": {
+      "type": "workday",
+      "name": "Samsung",
+      "host": "sec.wd3.myworkdayjobs.com",
+      "tenant": "sec",
+      "site": "Samsung_Careers",
+      "max": 100,
+      "resolve_locations": true
+    },
+    "tenstorrent": {
+      "type": "greenhouse",
+      "name": "Tenstorrent",
+      "board": "tenstorrent"
+    },
+    "axelera": {
+      "type": "ashby",
+      "name": "Axelera AI",
+      "board": "axelera"
+    },
+    "codasip": {
+      "type": "bamboohr",
+      "name": "Codasip",
+      "host": "codasip.bamboohr.com"
+    },
+    "intel": {
+      "type": "workday",
+      "name": "Intel",
+      "host": "intel.wd1.myworkdayjobs.com",
+      "tenant": "intel",
+      "site": "External",
+      "max": 100,
+      "resolve_locations": true
+    },
+    "broadcom": {
+      "type": "workday",
+      "name": "Broadcom",
+      "host": "broadcom.wd1.myworkdayjobs.com",
+      "tenant": "broadcom",
+      "site": "External_Career",
+      "max": 60,
+      "resolve_locations": true
+    },
+    "marvell": {
+      "type": "workday",
+      "name": "Marvell",
+      "host": "marvell.wd1.myworkdayjobs.com",
+      "tenant": "marvell",
+      "site": "MarvellCareers",
+      "max": 60,
+      "resolve_locations": true
+    },
+    "amazon": {
+      "type": "amazon",
+      "name": "Amazon",
+      "limit": 100
+    },
+    "microsoft": {
+      "type": "workday",
+      "name": "Microsoft",
+      "enabled": false,
+      "_note": "gcsservices.careers.microsoft.com unreachable from this network (connection fails). Retry from home network or use LinkedIn alert."
+    },
+    "meta": {
+      "type": "workday",
+      "name": "Meta",
+      "enabled": false,
+      "_note": "metacareers.com needs a browser session and GraphQL doc ids; not wired. Use LinkedIn alert."
+    },
+    "mediatek": {
+      "type": "workday",
+      "name": "MediaTek",
+      "enabled": false,
+      "_note": "careers.mediatek.com redirects into an eRecruit portal; no feed found."
+    },
+    "semidynamics": {
+      "type": "teamtailor",
+      "name": "Semidynamics",
+      "base": "https://semidynamics.teamtailor.com",
+      "default_location": "Barcelona",
+      "timeout": 60
+    },
+    "infineon": {
+      "type": "sitemap",
+      "name": "Infineon",
+      "sitemap": "https://jobs.infineon.com/careers/sitemap.xml",
+      "pattern": "/job/(\\d+)-([a-z0-9-]+)",
+      "strip_query": false,
+      "timeout": 60,
+      "_note": "Eightfold like Qualcomm; sitemap slugs + job-page JSON-LD. Sites: Munich, Villach, Dresden, Padova, Bangalore, Singapore."
+    }
+  },
+  "fit": {
+    "_comment": "Rule-based fit vs the candidate profile. Title/location weights add; text_positive capped; text_negative are regexes on the JD text.",
+    "title_weights": {
+      "gpu performance": 3,
+      "performance verification": 3,
+      "performance validation": 3,
+      "post-silicon": 3,
+      "post silicon": 3,
+      "silicon performance": 3,
+      "soc performance": 2,
+      "performance analysis": 2,
+      "performance architect": 2,
+      "gpu architect": 2,
+      "performance model": 1.5,
+      "architecture researcher": 1.5,
+      "performance researcher": 1.5,
+      "cpu performance": 1,
+      "memory controller": 1,
+      "fabric": 0.5,
+      "npu": 1.5,
+      "microarchitecture": 1.5,
+      "micro-architecture": 1.5,
+      "researcher": 1,
+      "performance engineer": 1.5,
+      "hardware performance": 2.5,
+      "performance engineer, hardware": 2.5,
+      "silicon validation": 1.5
+    },
+    "location_weights": {
+      "zurich": 2,
+      "zürich": 2,
+      "switzerland": 2,
+      "cambridge": 2,
+      "london": 2,
+      "munich": 2,
+      "amsterdam": 2,
+      "netherlands": 2,
+      "germany": 1.5,
+      "united kingdom": 1.5,
+      "bristol": 1.5,
+      "uk": 1.5,
+      "cupertino": 1,
+      "santa clara": 1,
+      "san francisco": 1,
+      "sunnyvale": 1,
+      "mountain view": 1,
+      "seattle": 1,
+      "austin": 1,
+      "remote": 0.5,
+      "india": 0.5,
+      "bengaluru": 0.5,
+      "lausanne": 2,
+      "eindhoven": 1.5,
+      "prague": 1,
+      "brno": 1,
+      "edinburgh": 1.5,
+      "dublin": 1.5,
+      "stockholm": 1.5,
+      "san diego": 1,
+      "folsom": 0.5,
+      "hillsboro": 0.5,
+      "texas": 0.5,
+      "shanghai": 0.5,
+      "beijing": 0.5,
+      "shenzhen": 0.5,
+      "hong kong": 1,
+      "taipei": 0.5,
+      "singapore": 1,
+      "bangalore": 0.5,
+      "hyderabad": 0.5,
+      "ireland": 1.5,
+      "cork": 1.5,
+      "france": 1.5,
+      "paris": 1.5,
+      "grenoble": 1.5,
+      "sophia antipolis": 1.5,
+      "toulouse": 1.5,
+      "lyon": 1.5,
+      "rennes": 1.5,
+      "italy": 2,
+      "italia": 2,
+      "milan": 2,
+      "milano": 2,
+      "turin": 2,
+      "torino": 2,
+      "rome": 2,
+      "roma": 2,
+      "pavia": 2,
+      "catania": 2,
+      "agrate": 2,
+      "bologna": 2,
+      "pisa": 2,
+      "spain": 2,
+      "españa": 2,
+      "barcelona": 2,
+      "madrid": 2,
+      "valencia": 2,
+      "malaga": 2,
+      "málaga": 2,
+      "zaragoza": 2,
+      "bilbao": 2,
+      "portugal": 1.5,
+      "lisbon": 1.5,
+      "porto": 1.5,
+      "austria": 1.5,
+      "vienna": 1.5,
+      "graz": 1.5,
+      "linz": 1.5,
+      "belgium": 1.5,
+      "brussels": 1.5,
+      "denmark": 1.5,
+      "copenhagen": 1.5,
+      "finland": 1.5,
+      "helsinki": 1.5,
+      "sweden": 1.5,
+      "lund": 1.5,
+      "norway": 1.5,
+      "czech": 1,
+      "poland": 1,
+      "warsaw": 1,
+      "gdansk": 1,
+      "krakow": 1,
+      "romania": 1,
+      "bucharest": 1,
+      "hungary": 1,
+      "budapest": 1
+    },
+    "text_positive": {
+      "performance counter|pmu|hardware counters|perf counters": [
+        1,
+        "perf counters"
+      ],
+      "post-silicon|post silicon|silicon bring": [
+        1,
+        "post-silicon"
+      ],
+      "correlat": [
+        1,
+        "model/RTL correlation"
+      ],
+      "rtl performance|pre-silicon|pre silicon": [
+        1,
+        "pre-silicon RTL perf"
+      ],
+      "bottleneck": [
+        1,
+        "bottleneck analysis"
+      ],
+      "microbenchmark|micro-benchmark": [
+        1,
+        "microbenchmarks"
+      ],
+      "workload characteri": [
+        1,
+        "workload characterization"
+      ],
+      "\\bgpu\\b": [
+        1,
+        "GPU"
+      ],
+      "waveform|verdi": [
+        1,
+        "waveform debug"
+      ],
+      "\\bperl\\b|\\bpython\\b": [
+        0.5,
+        "Python/Perl"
+      ],
+      "equivalent experience|bs/ms|bachelor.{0,20}or master|b\\.?s\\.? or m\\.?s": [
+        1,
+        "BS/MS accepted"
+      ]
+    },
+    "text_positive_cap": 4,
+    "text_negative": {
+      "\\buvm\\b": [
+        3,
+        "UVM"
+      ],
+      "systemverilog|system verilog": [
+        1.5,
+        "SystemVerilog"
+      ],
+      "\\bsva\\b|assertion-based|constrained.random|coverage.driven|testbench": [
+        1.5,
+        "DV craft (SVA/testbench)"
+      ],
+      "ph\\.?d\\.? (is )?required|requires? (a )?ph\\.?d|phd degree required": [
+        3,
+        "PhD required"
+      ],
+      "\\b(10|12|15)\\+? ?(\\+ )?years": [
+        3,
+        "10+ years"
+      ],
+      "\\b8\\+? ?years": [
+        1,
+        "8+ years"
+      ],
+      "security clearance|us citizen": [
+        4,
+        "clearance/citizenship"
+      ],
+      "\\bdeep learning\\b|\\bllm\\b": [
+        0.5,
+        "DL/LLM focus"
+      ],
+      "cuda kernel|custom (low-level )?kernels|writing (custom |low-level )?kernels|kernel (development|optimi[sz]ation|fusion)|triton|cutlass|flash attention|pytorch internals|nccl|tensorrt": [
+        1,
+        "ML-side kernel work"
+      ],
+      "not (be )?eligible for (visa |work |employment )?sponsorship|without (visa |employment )?sponsorship|must be authori[sz]ed to work|no (visa )?sponsorship|unable to sponsor|cannot sponsor|will not sponsor": [
+        4,
+        "no visa sponsorship"
+      ]
+    },
+    "star_thresholds": [
+      1,
+      3.5,
+      6,
+      8.5
+    ],
+    "include_location": false,
+    "text_negative_unless": {
+      "ML-side kernel work": "\\brtl\\b|post-silicon|post silicon|pre-silicon|pre silicon|tape-?out|microarchitect|performance model|silicon",
+      "DL/LLM focus": "\\brtl\\b|post-silicon|post silicon|pre-silicon|pre silicon|tape-?out|microarchitect|performance model|silicon|soc"
+    }
+  },
+  "title_exclude_unless": [
+    "senior/principal",
+    "senior / principal",
+    "senior or principal",
+    "senior/staff",
+    "senior / staff"
+  ],
+  "title_include_combo": [
+    [
+      "researcher",
+      "architect"
+    ],
+    [
+      "researcher",
+      "micro-architecture"
+    ],
+    [
+      "researcher",
+      "microarchitecture"
+    ],
+    [
+      "researcher",
+      "npu"
+    ],
+    [
+      "researcher",
+      "cpu"
+    ],
+    [
+      "researcher",
+      "gpu"
+    ],
+    [
+      "researcher",
+      "soc"
+    ],
+    [
+      "researcher",
+      "silicon"
+    ],
+    [
+      "researcher",
+      "hardware"
+    ],
+    [
+      "researcher",
+      "performance"
+    ],
+    [
+      "researcher",
+      "memory system"
+    ],
+    [
+      "research engineer",
+      "architect"
+    ],
+    [
+      "research engineer",
+      "hardware"
+    ],
+    [
+      "research engineer",
+      "silicon"
+    ],
+    [
+      "research engineer",
+      "performance"
+    ],
+    [
+      "research engineer",
+      "gpu"
+    ],
+    [
+      "research engineer",
+      "npu"
+    ],
+    [
+      "research scientist",
+      "architect"
+    ],
+    [
+      "research scientist",
+      "hardware"
+    ],
+    [
+      "computer architecture",
+      ""
+    ],
+    [
+      "microarchitecture",
+      ""
+    ],
+    [
+      "micro-architecture",
+      ""
+    ],
+    [
+      "npu architect",
+      ""
+    ],
+    [
+      "validation engineer",
+      "gpu"
+    ],
+    [
+      "validation engineer",
+      "silicon"
+    ],
+    [
+      "validation engineer",
+      "soc"
+    ],
+    [
+      "systems validation",
+      "gpu"
+    ]
+  ]
+}
