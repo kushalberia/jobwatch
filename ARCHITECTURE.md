@@ -48,6 +48,14 @@ career sites that are Greenhouse-backed (a `gh_jid` in the URL is resolved again
 **Scheduling.** launchd, twice a day. Offline runs are harmless: every source reports a DNS timeout, nothing is
 scanned, nothing is pruned, and the log says so.
 
+- **Hard drops are archived, not deleted.** Rejections taught which flags predict a "no" (customer-facing FDE grade,
+  consulting-leadership grade, enterprise-vendor tier, language requirements). Those flags remove untouched rows from the
+  tracker into `dropped.json`; a row with a status or a note is never dropped, and deleting the archive entry restores
+  it on the next run. Keeps the workbook short without losing the judgement trail.
+- **Posting text is stored so rules can be tuned offline.** A network rescore of 500+ boards takes most of an hour;
+  `--rescore-offline` re-scores every tracked row from `jd_store.json` in seconds. Tuning became a loop of edit,
+  re-score, compare, instead of edit and wait.
+
 ## Things that did not work
 
 - Qualcomm's Eightfold API returns 403 for unauthenticated clients; the sitemap plus per-page JSON-LD does the job.

@@ -50,6 +50,8 @@ P = lambda name: os.path.join(HERE, name)  # noqa: E731
 CONFIG, REPORT, LATEST = P("jobwatch_config.json"), P("report.md"), P("latest.json")
 TRACKER, XLSX, PIPELINE = P("tracker.json"), P("tracker.xlsx"), P("pipeline.md")
 XLSX_STATE = P("xlsx_state.json")
+JD_STORE = P("jd_store.json")   # id -> JD text for tracked rows (config fit.save_jd_text); feeds collateral requirement-matching
+DROPPED = P("dropped.json")   # archive of rows removed by fit.drop_flags (reversible; never contains Applied/Rejected/Skip rows)
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 USE_CURL = os.environ.get("JOBWATCH_TRANSPORT", "curl") == "curl"
@@ -147,7 +149,7 @@ def fetch_workday(src, queries):
     base = f"https://{src['host']}/wday/cxs/{src['tenant']}/{src['site']}/jobs"
     public = f"https://{src['host']}/{src['site']}"
     out, seen = [], set()
-    for q in queries:
+    for q in (src.get("queries") or queries):
         offset = 0
         while True:
             data = http(base, "POST", {"appliedFacets": {}, "limit": 20, "offset": offset, "searchText": q},
@@ -159,7 +161,10 @@ def fetch_workday(src, queries):
                 if jid in seen:
                     continue
                 seen.add(jid)
-                out.append({"id": jid, "title": j.get("title", ""), "location": j.get("locationsText", ""),
+                loc = j.get("locationsText", "")
+                if not loc and path.count("/") >= 3:          # Accenture-style sites leave locationsText empty; the city is in the path
+                    loc = path.split("/")[2].replace("-", " ")
+                out.append({"id": jid, "title": j.get("title", "").strip("* "), "location": loc,
                             "url": public + path, "posted": j.get("postedOn", ""),
                             "_wd_detail": f"https://{src['host']}/wday/cxs/{src['tenant']}/{src['site']}{path}"})
             offset += 20
@@ -346,7 +351,27 @@ def fetch_google_html(src, queries):
     return out
 
 
-FETCHERS = {"greenhouse": fetch_greenhouse, "ashby": fetch_ashby, "lever": fetch_lever,
+def fetch_smartrecruiters(src):
+    """SmartRecruiters public postings API; details fetched lazily via _sr_detail."""
+    out, offset = [], 0
+    while True:
+        data = http(f"https://api.smartrecruiters.com/v1/companies/{src['board']}/postings?limit=100&offset={offset}", timeout=src.get("timeout", 30))
+        posts = data.get("content", [])
+        for j in posts:
+            loc = j.get("location") or {}
+            loc_s = ", ".join(x for x in [loc.get("city", ""), loc.get("region", ""), loc.get("country", "").upper()] if x)
+            if loc.get("remote"):
+                loc_s = (loc_s + "; Remote").strip("; ")
+            out.append({"id": f"sr-{src['board']}-{j['id']}", "title": j.get("name", ""), "location": loc_s,
+                        "url": f"https://jobs.smartrecruiters.com/{src['board']}/{j['id']}", "posted": (j.get("releasedDate") or "")[:10],
+                        "_sr_detail": f"https://api.smartrecruiters.com/v1/companies/{src['board']}/postings/{j['id']}"})
+        offset += 100
+        if len(posts) < 100 or offset >= src.get("max", 1000):
+            break
+    return out
+
+
+FETCHERS = {"greenhouse": fetch_greenhouse, "ashby": fetch_ashby, "lever": fetch_lever, "smartrecruiters": fetch_smartrecruiters,
             "workday": fetch_workday, "apple": fetch_apple, "google": fetch_google, "radancy": fetch_radancy,
             "teamtailor": fetch_teamtailor, "bamboohr": fetch_bamboohr,
             "amazon": fetch_amazon, "sitemap": fetch_sitemap, "google_html": fetch_google_html}
@@ -446,9 +471,17 @@ COUNTRY_KEYS = [
 ]
 
 
+EUROPE = {"United Kingdom", "Ireland", "Germany", "France", "Spain", "Italy", "Switzerland", "Netherlands", "Belgium", "Luxembourg",
+          "Austria", "Sweden", "Norway", "Denmark", "Finland", "Poland", "Czechia", "Portugal", "Serbia", "Hungary", "Romania", "Greece"}
+
+
 def countries_of(location):
     loc = " " + (location or "").lower() + " "
     found = [name for name, keys in COUNTRY_KEYS if any(k in loc for k in keys)]
+    # a posting open to "Europe" / "EMEA" that names no European city (or only non-European ones) also belongs on the
+    # Europe-wide sheet, otherwise remote-Europe roles vanish from every European tab
+    if re.search(r"\beurope\b|\bemea\b|europe-wide|remote.{0,12}(eu|europe)", loc) and not any(c in EUROPE for c in found):
+        found.append("Remote / Europe-wide")
     if found:
         return found
     if re.search(r"remote|europe|emea|anywhere|global|worldwide", loc):
@@ -477,6 +510,11 @@ def fetch_detail(job, src):
         if "_wd_detail" in job:
             d = http(job["_wd_detail"])
             text = strip_html((d.get("jobPostingInfo") or {}).get("jobDescription", ""))
+            return {"text": text, "comp": find_comp(text)}
+        if "_sr_detail" in job:
+            d = http(job["_sr_detail"])
+            secs = (d.get("jobAd") or {}).get("sections") or {}
+            text = "\n".join(strip_html((secs.get(k) or {}).get("text", "")) for k in ("companyDescription", "jobDescription", "qualifications", "additionalInformation"))
             return {"text": text, "comp": find_comp(text)}
         if "_gh_id" in job:
             d = http(f"https://boards-api.greenhouse.io/v1/boards/{src['board']}/jobs/{job['_gh_id']}")
@@ -557,6 +595,10 @@ def match(job, cfg):
     # "Senior/Principal Researcher" style titles span two levels; do not reject them for the word principal
     if any(x in t for x in cfg.get("title_exclude_unless", [])):
         excluded = [k for k in excluded if k not in ("principal", "staff ", "senior staff")]
+    # title_rescue: phrases that name the role family we want outright ("AI Operations Engineer", "AI Platform Engineer");
+    # a title containing one of them ignores generic excludes such as "operations" or "platform engineer"
+    if excluded and any(x in t for x in cfg.get("title_rescue", [])):
+        excluded = []
     if excluded:
         return None
     loc_hit = [k for k in cfg["location_include"] if k in loc]
@@ -587,23 +629,50 @@ def score_fit(job, text, cfg):
                 break
     if body:
         pos = 0
+        not_title = rules.get("text_positive_not_title", {})   # label -> title regex: positive does not apply to those titles
         for k, (w, label) in rules["text_positive"].items():
             if re.search(k, body):
+                if label in not_title and re.search(not_title[label], t):
+                    continue   # e.g. "internal customer" wording inside a Forward Deployed JD is not evidence of an internal role
                 pos += w
                 why.append(f"+{w:g} {label}")
         score += min(pos, rules.get("text_positive_cap", 4))
         unless = rules.get("text_negative_unless", {})
+        unless2 = rules.get("text_negative_unless_internal", {})   # label -> regex: second exception, only for non-delivery titles
+        igate = rules.get("internal_title_gate")                   # title regex naming delivery-type roles (same shape as company_negative_title)
         for k, (w, label) in rules["text_negative"].items():
             if re.search(k, body):
                 if label in unless and re.search(unless[label], body):
                     why.append(f"(0 {label}: context exception, not penalised)")
                     continue
+                if label in unless2 and re.search(unless2[label], body) and not (igate and re.search(igate, t)):
+                    why.append(f"(0 {label}: internal-customer role, not penalised)")
+                    continue
                 score -= w
                 flags.append(label)
                 why.append(f"-{w:g} {label}")
+        # density rules: how much of the description is actually about the work we want (config "text_density")
+        for d in rules.get("text_density", []):
+            n = len(re.findall(d["pattern"], body))
+            if "over_at" in d and n >= d["over_at"]:   # too much of something we lack (e.g. a cloud/web delivery stack)
+                score -= d["over_penalty"]; flags.append(d["over_label"]); why.append(f"-{d['over_penalty']:g} {d['over_label']} ({n} mentions)")
+            if "min" in d and n < d["min"] and not (d.get("exempt_title") and re.search(d["exempt_title"], t)):
+                score -= d["penalty"]; flags.append(d["label"]); why.append(f"-{d['penalty']:g} {d['label']} ({n} mentions)")
+            elif "bonus_at" in d and n >= d["bonus_at"]:
+                score += d["bonus"]; why.append(f"+{d['bonus']:g} {d.get('bonus_label', d['label'])} ({n} mentions)")
+            if "against" in d and n < d.get("against_min", 6) and len(re.findall(d["against"], body)) >= d.get("against_at", 4):
+                score -= d["against_penalty"]; flags.append(d["against_label"]); why.append(f"-{d['against_penalty']:g} {d['against_label']}")
     else:
         why.append("no description fetched, title-only score")
+    tgate = rules.get("company_negative_title")   # only for delivery-type titles; a platform SWE at the same employer is a different job
+    for k, (w, label) in rules.get("company_negative", {}).items():   # employer tier, independent of JD wording
+        if re.search(k, norm(job.get("company", ""))) and (not tgate or re.search(tgate, norm(job.get("title", "")))):
+            score -= w; flags.append(label); why.append(f"-{w:g} {label}")
+            break
     stars = 1 + sum(score > th for th in rules["star_thresholds"])
+    for flag, cap in rules.get("cap_stars_on_flags", {}).items():   # e.g. a JD with little agent content can never be 4★+
+        if flag in flags:
+            stars = min(stars, cap)
     return max(1, min(5, stars)), f"score {score:g}: " + "; ".join(why[:9]), flags
 
 
@@ -687,9 +756,9 @@ def col_letter(i):
     return s
 
 
-XCOLS = ["Found", "Company", "Title", "Location", "Posted", "Compensation", "Fit", "Fit notes",
+XCOLS = ["Found", "Company", "Title", "Location", "Same JD as", "Posted", "Compensation", "Fit", "Fit notes",
          "Flags", "Status", "My notes", "Link", "Folder", "Source", "ID"]
-XWIDTH = [11, 12, 48, 24, 13, 26, 7, 60, 24, 13, 30, 8, 9, 11, 30]
+XWIDTH = [11, 12, 48, 24, 22, 13, 26, 7, 60, 24, 13, 30, 8, 9, 11, 30]
 WB = {"group_by": "company", "sort": "fit", "comp_usd": False}   # overridden from config["workbook"] in main()
 
 
@@ -702,6 +771,7 @@ def configure_workbook(cfg):
     if WB.get("group_by") == "country" and "Country" not in XCOLS:
         i = XCOLS.index("Location") + 1
         XCOLS.insert(i, "Country"); XWIDTH.insert(i, 14)
+        XCOLS.insert(i + 1, "Also on"); XWIDTH.insert(i + 1, 22)   # other country sheets the same posting appears on
 
 
 def _sheet_name(name, used):
@@ -791,15 +861,42 @@ def _row_sort_key(r):
     return (-int(r["Fit"] or 0), r["Title"])
 
 
+def _backup_xlsx():
+    """Keep the last 10 workbooks under backups/ so an overwritten edit can always be recovered."""
+    if not os.path.exists(XLSX):
+        return
+    bdir = os.path.join(HERE, "backups"); os.makedirs(bdir, exist_ok=True)
+    import shutil
+    shutil.copy2(XLSX, os.path.join(bdir, dt.datetime.now().strftime("tracker_%Y%m%d_%H%M%S.xlsx")))
+    old = sorted(f for f in os.listdir(bdir) if f.startswith("tracker_") and f.endswith(".xlsx"))
+    for f in old[:-10]:
+        os.remove(os.path.join(bdir, f))
+
+
 def write_xlsx(rows):
     """Workbook: a Summary sheet plus one sheet per company (default) or per country (workbook.group_by = "country";
-    a posting listing several countries appears on each). Rows sorted by fit, or fit then package. Status colours the row."""
+    a posting listing several countries appears on each). Rows sorted by fit, or fit then package. Status colours the row.
+    GATE 2: never rewrite a workbook that Excel has open (lock file ~$tracker.xlsx); always back up before overwriting;
+    verify afterwards that every non-New status in the tracker is present in the file."""
+    if os.path.exists(os.path.join(HERE, "~$tracker.xlsx")):
+        print("GATE: skipped workbook rewrite (open in Excel)")
+        return
+    _backup_xlsx()
+    _write_xlsx(rows)
+    want = sum(1 for r in rows if r.get("Status") and r["Status"] != "New")
+    got = sum(1 for e in read_xlsx_edits_raw().values() if e["status"] and e["status"] != "New")
+    print(f"GATE: workbook written; {got} non-New status rows in file ({want} unique in tracker); backup kept under backups/")
+
+
+def _write_xlsx(rows):
     by = {}
     by_country = WB.get("group_by") == "country"
     for r in rows:
         if by_country:
-            for c in countries_of(r["Location"]):
+            cs = countries_of(r["Location"])
+            for c in cs:
                 rc = dict(r); rc["Country"] = c
+                rc["Also on"] = ", ".join(x for x in cs if x != c)   # same posting, other sheets
                 by.setdefault(c, []).append(rc)
         else:
             by.setdefault(r["Company"], []).append(r)
@@ -887,7 +984,33 @@ def write_xlsx(rows):
         json.dump({r["ID"]: {"status": r.get("Status", "New"), "notes": r.get("My notes", "")} for r in rows}, f)
 
 
-def read_xlsx_edits():
+def import_workbook_edits(tracker, today, label="GATE"):
+    """Apply Status / My-notes edits from the workbook to the tracker, log them, persist at once."""
+    imported = []
+    for jid, e in read_xlsx_edits().items():
+        if jid in tracker:
+            if e["status"] and e["status"] != tracker[jid].get("status"):
+                imported.append(f"{tracker[jid]['company']} | {tracker[jid]['title'][:50]} | {tracker[jid]['location'][:30]}: {tracker[jid].get('status')} -> {e['status']}")
+                tracker[jid]["status"] = e["status"]
+                tracker[jid]["status_date"] = today
+            if e["notes"] and e["notes"] != tracker[jid].get("notes", ""):
+                tracker[jid]["notes"] = e["notes"]
+    if imported:
+        save(TRACKER, tracker)
+        print(f"{label}: imported {len(imported)} status edit(s) from the workbook:")
+        for line in imported:
+            print("  " + line)
+    else:
+        print(f"{label}: no new status edits in the workbook")
+    return imported
+
+
+def read_xlsx_edits_raw():
+    """Status/notes per ID from the workbook regardless of what we last wrote (used to verify a write)."""
+    return read_xlsx_edits(raw=True)
+
+
+def read_xlsx_edits(raw=False):
     """Read Status and My notes per ID from every sheet of the workbook (edits made in Excel)."""
     if not os.path.exists(XLSX):
         return {}
@@ -901,32 +1024,35 @@ def read_xlsx_edits():
     except (zipfile.BadZipFile, KeyError):
         return {}
     edits = {}
-    written = load(XLSX_STATE, {})   # what we last wrote; a cell counts as edited only if it differs from this
+    written = {} if raw else load(XLSX_STATE, {})   # what we last wrote; a cell counts as edited only if it differs from this
     for sh in sheets:
         sheet = z.read(sh).decode("utf8", "ignore")
         all_rows = re.findall(r"<row[^>]*>(.*?)</row>", sheet, re.S)
         if not all_rows:
             continue
-        hdr = [htmllib.unescape(re.sub(r"<[^>]+>", "", c)) for c in re.findall(r"<c [^>]*>(.*?)</c>", all_rows[0], re.S)]
-        idx = {name: i for i, name in enumerate(hdr)}
-        if not {"ID", "Status", "My notes"} <= set(idx):
-            continue   # Summary sheet or foreign layout
-        for row in all_rows[1:]:
-            vals = {}
+        def cell_values(row):
+            out = {}
             for ref, attrs, inner in re.findall(r'<c r="([A-Z]+)\d+"([^>]*?)(?:/>|>(.*?)</c>)', row, re.S):
                 col = 0
                 for ch in ref:
                     col = col * 26 + ord(ch) - 64
                 col -= 1
-                if 't="s"' in attrs:
+                if 't="s"' in attrs:          # Excel-saved file: shared string reference
                     v = re.search(r"<v>(.*?)</v>", inner or "")
                     val = shared[int(v.group(1))] if v and int(v.group(1)) < len(shared) else ""
-                elif 't="inlineStr"' in attrs:
+                elif 't="inlineStr"' in attrs:  # our own writer
                     val = htmllib.unescape(re.sub(r"<[^>]+>", "", inner or ""))
                 else:
                     v = re.search(r"<v>(.*?)</v>", inner or "")
                     val = htmllib.unescape(v.group(1)) if v else ""
-                vals[col] = val.strip()
+                out[col] = val.strip()
+            return out
+        hdr_vals = cell_values(all_rows[0])
+        idx = {name: i for i, name in hdr_vals.items()}
+        if not {"ID", "Status", "My notes"} <= set(idx):
+            continue   # Summary sheet or foreign layout
+        for row in all_rows[1:]:
+            vals = cell_values(row)
             jid = vals.get(idx["ID"], "")
             if not jid:
                 continue
@@ -952,13 +1078,53 @@ def save(path, obj):
     os.replace(tmp, path)
 
 
+def jd_hash(text):
+    """MinHash signature (48 values) over word 3-grams of the description, so postings that differ only by a city
+    sentence or a pay range still match. Stored per row; same_jd_map() groups rows whose estimated Jaccard >= 0.9."""
+    import hashlib
+    words = re.findall(r"[a-z]+", (text or "").lower())
+    if len(words) < 20:
+        return ""
+    grams = {" ".join(words[i:i + 3]) for i in range(len(words) - 2)}
+    sig = []
+    for seed in range(48):
+        m = min(int(hashlib.blake2b(f"{seed}|{g}".encode(), digest_size=8).hexdigest(), 16) for g in grams)
+        sig.append(format(m, "016x")[:8])
+    return ",".join(sig)
+
+
+def _jd_similar(a, b):
+    if not a or not b or "," not in a or "," not in b:
+        return a == b and bool(a)
+    xa, xb = a.split(","), b.split(",")
+    return sum(1 for x, y in zip(xa, xb) if x == y) / len(xa) >= 0.9
+
+
+def same_jd_map(tracker):
+    """jid -> 'City A; City B' for other rows of the same company whose descriptions are near-identical."""
+    by_co = {}
+    for jid, t in tracker.items():
+        if t.get("jd_hash"):
+            by_co.setdefault(t.get("company"), []).append(jid)
+    out = {}
+    for ids in by_co.values():
+        for jid in ids:
+            others = [o for o in ids if o != jid and _jd_similar(tracker[jid]["jd_hash"], tracker[o]["jd_hash"])]
+            if others:
+                cities = [tracker[o].get("location", "").split(";")[0].split(",")[0].strip() for o in others]
+                out[jid] = "; ".join(dict.fromkeys(cities))
+    return out
+
+
 def tracker_rows(tracker):
     rows = []
+    dup = same_jd_map(tracker)
     for jid, t in tracker.items():
         rows.append({"Found": t.get("found", ""), "Company": t.get("company", ""), "Title": t.get("title", ""),
                      "Location": t.get("location", ""), "Posted": t.get("posted", ""), "Compensation": t.get("comp", ""),
                      "Comp USD": comp_usd(t.get("comp", ""), t.get("location", "")),
                      "Country": ", ".join(countries_of(t.get("location", ""))),
+                     "Same JD as": dup.get(jid, ""),
                      "Fit": t.get("fit", 0), "Fit notes": t.get("fit_notes", ""), "Flags": ", ".join(t.get("flags", [])),
                      "Status": t.get("status", "New"), "My notes": t.get("notes", ""), "Link": t.get("url", ""),
                      "Folder": t.get("folder", ""), "Source": t.get("source", ""), "ID": jid})
@@ -969,7 +1135,7 @@ def tracker_rows(tracker):
 
 def write_pipeline(tracker):
     lines = ["# Job pipeline (written by jobwatch; Claude reads this at session start)", "",
-             f"Updated {dt.date.today().isoformat()}. A status here means the user wants to act: "
+             f"Updated {dt.date.today().isoformat()}. A status here means you want to act: "
              "tailor a resume, draft a cover letter, or prep for an interview. Open the JD link before acting.", ""]
     active = [(jid, t) for jid, t in tracker.items() if t.get("status") in PIPELINE_STATUSES]
     if not active:
@@ -1009,6 +1175,7 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--rescore", action="store_true")
+    ap.add_argument("--rescore-offline", action="store_true", help="re-score every tracked row from jd_store.json text under the current rules; no network")
     ap.add_argument("--status", nargs=2, metavar=("ID_OR_URL", "STATUS"))
     ap.add_argument("--note", default=None)
     ap.add_argument("--pipeline", action="store_true")
@@ -1026,14 +1193,11 @@ def main():
     tracker = load(TRACKER, {})
     today = dt.date.today().isoformat()
 
-    # ---- pick up edits made in Excel before anything else
-    for jid, e in read_xlsx_edits().items():
-        if jid in tracker:
-            if e["status"] and e["status"] != tracker[jid].get("status"):
-                tracker[jid]["status"] = e["status"]
-                tracker[jid]["status_date"] = today
-            if e["notes"] and e["notes"] != tracker[jid].get("notes", ""):
-                tracker[jid]["notes"] = e["notes"]
+    # ---- GATE 1: pick up edits made in Excel before anything else, log them, and persist them at once so a crash or
+    #      a network failure later in the run can never lose a status typed into the workbook.
+    import_workbook_edits(tracker, today)
+    if os.path.exists(os.path.join(HERE, "~$tracker.xlsx")):
+        print("GATE: tracker.xlsx is OPEN in Excel; the workbook will NOT be rewritten this run (tracker.json and pipeline.md still update). Save and close it before the next run.")
 
     # ---- import pasted URLs
     if args.add_manual:
@@ -1044,7 +1208,8 @@ def main():
         key = f"manual-{company.lower().split()[0]}-{abs(hash(url)) % 10**8}"
         e = tracker.get(key, {"found": today, "status": "New", "notes": "added manually"})
         e.update({"company": company, "title": title, "location": loc, "posted": "", "url": url, "source": "manual",
-                  "comp": find_comp(text), "fit": stars, "fit_notes": notes, "flags": flags, "low_priority_location": False, "last_seen": today})
+                  "comp": find_comp(text), "fit": stars, "fit_notes": notes, "flags": flags, "low_priority_location": False, "last_seen": today,
+                  "manual_text": os.path.abspath(textfile)})
         tracker[key] = e
         print(f"{'★' * e['fit']} | {company} | {title} | {loc} | {e['comp'] or 'no salary'} | flags: {', '.join(flags) or 'none'}")
         print(f"   {notes[:300]}")
@@ -1093,7 +1258,37 @@ def main():
                 if t.get("status", "New") == "New" and not t.get("notes")
                 and match({"title": t.get("title", ""), "location": t.get("location", "")}, cfg) is None]:
         del tracker[jid]
+    # ---- fit.drop_flags (opt-in per config): untouched New rows carrying a hard-reject flag move to dropped.json
+    dropped = load(DROPPED, {})
+    jd_store = load(JD_STORE, {}) if cfg["fit"].get("save_jd_text") else None
+    drop_flags = set(cfg["fit"].get("drop_flags", []))
+    if drop_flags:
+        for jid, t in list(tracker.items()):
+            if (t.get("status", "New") == "New" and not t.get("notes") and t.get("source") not in ("manual", "linkedin")
+                    and drop_flags & set(t.get("flags", []))):
+                dropped[jid] = {k: t.get(k, "") for k in ("company", "title", "location", "url", "fit", "flags", "fit_notes")}
+                dropped[jid]["dropped_on"] = dt.date.today().isoformat()
+                del tracker[jid]
+    if args.rescore_offline:
+        store = load(JD_STORE, {})
+        n, moved = 0, 0
+        for jid, t in list(tracker.items()):
+            text = store.get(jid) or (open(t["manual_text"], encoding="utf-8").read() if t.get("manual_text") and os.path.exists(t["manual_text"]) else "")
+            if not text:
+                continue
+            stars, notes, flags = score_fit({"title": t["title"], "location": t["location"], "company": t["company"]},
+                                            text + ("\nCOMP: " + t["comp"] if t.get("comp") else ""), cfg)
+            moved += int(t.get("fit", 0)) != stars
+            if drop_flags & set(flags) and t.get("status", "New") == "New" and not t.get("notes") and t.get("source") not in ("manual", "linkedin"):
+                dropped[jid] = {k: t.get(k, "") for k in ("company", "title", "location", "url")} | {"fit": stars, "flags": flags, "fit_notes": notes, "dropped_on": today}
+                del tracker[jid]
+                continue
+            t.update({"fit": stars, "fit_notes": notes, "flags": flags}); n += 1
+        save(DROPPED, dropped); save(TRACKER, tracker); write_xlsx(tracker_rows(tracker)); write_pipeline(tracker)
+        print(f"re-scored {n} rows offline ({moved} changed stars); tracked total now {len(tracker)}; dropped archive {len(dropped)}")
+        return
     if args.prune:
+        save(DROPPED, dropped)
         save(TRACKER, tracker); write_xlsx(tracker_rows(tracker)); write_pipeline(tracker)
         print(f"pruned; tracked total now {len(tracker)}")
         return
@@ -1137,15 +1332,26 @@ def main():
     new = []
     for j in results:
         jid = j["id"]
+        if jid in dropped and not args.rescore:
+            continue   # already judged and dropped; --rescore re-judges against the current rules
         fresh = jid not in tracker
         if fresh or args.rescore:
             det = fetch_detail(j, src_of[jid])
             stars, notes, flags = score_fit(j, det.get("text", "") + ("\nCOMP: " + det["comp"] if det.get("comp") else ""), cfg)
+            old = tracker.get(jid, {"status": "New", "notes": ""})
+            if drop_flags & set(flags) and old.get("status", "New") == "New" and not old.get("notes"):
+                tracker.pop(jid, None)
+                dropped[jid] = {"company": j["company"], "title": j["title"], "location": j["location"], "url": j["url"],
+                                "fit": stars, "flags": flags, "fit_notes": notes, "dropped_on": today}
+                continue
+            dropped.pop(jid, None)   # judged fit under the current rules
+            if jd_store is not None and det.get("text"):
+                jd_store[jid] = det["text"][:20000]
             entry = tracker.get(jid, {"found": today, "status": "New", "notes": ""})
             entry.update({"company": j["company"], "title": j["title"], "location": j["location"],
                           "posted": j["posted"], "url": j["url"], "source": j["source"],
                           "comp": det.get("comp", ""), "fit": stars, "fit_notes": notes, "flags": flags,
-                          "low_priority_location": j["low"], "last_seen": today})
+                          "low_priority_location": j["low"], "last_seen": today, "jd_hash": jd_hash(det.get("text", ""))})
             if det.get("error"):
                 entry["detail_error"] = det["error"]
             tracker[jid] = entry
@@ -1157,6 +1363,12 @@ def main():
     # ---- manual / URL-imported rows are not in any source; re-import them on --rescore
     if args.rescore:
         for jid, t in list(tracker.items()):
+            if t.get("manual_text") and os.path.exists(t["manual_text"]):   # pasted-JD rows (Cloudflare-blocked sites): re-score the saved text
+                text = open(t["manual_text"], encoding="utf-8").read()
+                t["fit"], t["fit_notes"], t["flags"] = score_fit({"title": t["title"], "location": t["location"], "company": t["company"]},
+                                                                  text + "\nCOMP: " + find_comp(text), cfg)
+                t["last_seen"] = today
+                continue
             if t.get("source") in ("manual", "linkedin") and t.get("url", "").startswith("http") and t.get("status") not in ("Skip", "Rejected"):
                 try:
                     key, e, _ = import_url(t["url"], cfg, tracker, today)
@@ -1167,6 +1379,21 @@ def main():
                         tracker.pop(jid, None)
                 except Exception as ex:  # noqa: BLE001
                     tracker[jid]["detail_error"] = str(ex)[:120]
+
+    if args.rescore:   # rows no longer in any feed keep their text score but still get the employer-tier rule
+        reached = {j["id"] for j in results}
+        tgate = cfg["fit"].get("company_negative_title")
+        for jid, t in tracker.items():
+            if jid in reached or t.get("source") in ("manual", "linkedin"):
+                continue
+            for k, (w, label) in cfg["fit"].get("company_negative", {}).items():
+                if re.search(k, norm(t.get("company", ""))) and (not tgate or re.search(tgate, norm(t.get("title", "")))) and label not in t.get("flags", []):
+                    t["flags"] = t.get("flags", []) + [label]
+                    cap = cfg["fit"].get("cap_stars_on_flags", {}).get(label)
+                    if cap:
+                        t["fit"] = min(int(t.get("fit", 1)), cap)
+                    t["fit_notes"] = t.get("fit_notes", "") + f"; -{w:g} {label} (posting not in feed today; employer tier applied)"
+                    break
 
     # ---- report
     new_ids = {n["id"] for n in new}
@@ -1189,7 +1416,11 @@ def main():
 
     if args.dry:
         return
+    save(DROPPED, dropped)
+    if jd_store is not None:
+        save(JD_STORE, {k: v for k, v in jd_store.items() if k in tracker})
     save(TRACKER, tracker)
+    import_workbook_edits(tracker, today, label="GATE (re-check before write)")
     write_xlsx(tracker_rows(tracker))
     write_pipeline(tracker)
     with open(REPORT, "w") as f:
